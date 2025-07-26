@@ -17,24 +17,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
-@RequestMapping("/station")
+@RequestMapping("/")
 public class WebController {
 
     @Autowired
     private StationService stationService;
 
 	@GetMapping("/")
-    public String home() {
-        return "Spring Boot App Deployed Successfully!";
+    public String display() {
+        return "Welcome to Azure project";
     }
 	
-     @PostMapping
+     @PostMapping("/createstation")
     public Station createStation(@RequestBody Station station) {
         return stationService.createStation(station);
     }
 
     
-    @GetMapping
+    @GetMapping("/getallstations")
     public List<Station> getAllStations() {
         return stationService.Getallstations();
     }
