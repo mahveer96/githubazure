@@ -1,0 +1,48 @@
+# .github/workflows/deploy-to-aks.yml
+name: Deploy to AKS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Set up Java
+      uses: actions/setup-java@v2
+      with:
+        java-version: '17'
+
+    - name: Build Spring Boot JAR
+      run: mvn clean package
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Build and Push Docker Image to ACR
+      uses: azure/docker-login@v1
+      with:
+        login-server: microser.azurecr.io
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    - run: |
+        docker build -t microser.azurecr.io/myapp:v1 .
+        docker push microser.azurecr.io/myapp:v1
+
+    - name: Set AKS Context
+      uses: azure/aks-set-context@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        cluster-name: myAKSCluster
+        resource-group: myResourceGroup
+
+    - name: Deploy to AKS
+      run: kubectl apply -f k8s/deployment.yaml
